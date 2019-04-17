@@ -1,0 +1,26 @@
+function [results] = vm1(test, guess, numAttributes)
+one = 0; 
+two = 0; 
+three = 0;
+names = fieldnames(guess{1});
+results = struct; 
+classification = []; 
+for j = 1:size(test,1) 
+    for i = 1:numAttributes
+        if( guess{j}.(names{i}) == 1) 
+            one = one +1; 
+        end 
+        if(guess{j}.(names{i}) == 2) 
+            two = two +1; 
+        end 
+        if( guess{j}.(names{i}) == 3) 
+            three = three +1; 
+        end   
+    end 
+    [~, temp] =  max([one, two, three]); 
+    classification = [classification, temp]; 
+end 
+results.point = test; 
+results.classification = classification; 
+results
+end 
