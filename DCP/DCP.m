@@ -1,7 +1,7 @@
 %% Implementation of the Dominance Classifier and Predictor Algorithm 
 %% taken from "Toward Efficient Automation of Interpretable Machine Learning" 
 %% written by Boris Kovalerchuk, Nathan Neuhaus  
-%% EECE 5644 Final Project, Marissa D'Alonzo, Ryan Huebelback 
+%% EECE 5644 Final Project, Marissa D'Alonzo, Ryan Hubelbank 
 % Notes - needs to be modified to work for all inputs, 
 % Classes must start at 1 
 % Load dataset
