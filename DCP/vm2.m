@@ -11,9 +11,9 @@ for j = 1:size(test,1)
     % interval 
     for i = 1:numAttributes
         if (guess{j}.(names{i}) ~= 0)
-            one = one + training_set{i}.intervalCounts(guess{j}.(names{i+4}),1);
-            two = two + training_set{i}.intervalCounts(guess{j}.(names{i+4}),2);
-            three = three + training_set{i}.intervalCounts(guess{j}.(names{i+4}),3); 
+            one = one + training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),1);
+            two = two + training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),2);
+            three = three + training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),3); 
         end
     end
     [~, temp] =  max([one, two, three]);
@@ -21,7 +21,6 @@ for j = 1:size(test,1)
 end
 results.point = test;
 results.classification = classification;
-% Modify here for different sizes 
-temp = test(:,5) - results.classification';
+temp = test(:,numAttributes+1) - results.classification';
 results.accuracy = size(find(temp == 0),1);
 end 

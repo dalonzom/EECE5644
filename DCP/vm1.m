@@ -26,7 +26,6 @@ for j = 1:size(test,1)
 end 
 results.point = test; 
 results.classification = classification; 
-% Change here 
-temp = test(:,5) - results.classification'; 
+temp = test(:,numAttributes+1) - results.classification'; 
 results.accuracy = size(find(temp == 0),1); 
 end 

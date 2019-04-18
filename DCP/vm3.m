@@ -9,12 +9,12 @@ for j = 1:size(test,1)
     three = 0;
     for i = 1:numAttributes
         if (guess{j}.(names{i}) ~= 0)
-            totalCount = sum(training_set{i}.intervalCounts(guess{j}.(names{i+4}),:)); 
-            oneCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),1); 
+            totalCount = sum(training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),:)); 
+            oneCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),1); 
             one = one + (oneCount/ (totalCount -oneCount)); 
-            twoCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),2); 
+            twoCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),2); 
             two = two + (twoCount/ (totalCount -twoCount)); 
-            threeCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),3); 
+            threeCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),3); 
             three = three + (threeCount/ (totalCount -threeCount)); 
 
         end
@@ -23,9 +23,8 @@ for j = 1:size(test,1)
     classification = [classification, temp];
 end
 results.point = test;
-results.classification = classification;
-% Change here for different sizes 
-temp = test(:,5) - results.classification';
+results.classification = classification; 
+temp = test(:,numAttributes+1) - results.classification';
 results.accuracy = size(find(temp == 0),1);
 
 end 

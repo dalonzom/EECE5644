@@ -1,6 +1,7 @@
 %% Train DCP algorithm 
-function [s] = training(dataset, labels)
+function [s] = training(dataset, labels, dtc)
 
+dim = size(dataset); 
 s = struct;
 s.labels = labels;
 %Find unique vales
@@ -54,9 +55,14 @@ while i <= iteration
         class2Counts = class2Counts - s.xCounts(i).class2;
         class3Counts = class3Counts - s.xCounts(i).class3; 
         val2 = s.x(i);
-        intervals = [intervals; [val1, val2]];
-        classes = [classes, s.DominantClass(i-1)];
-        intervalCounts = [intervalCounts; [class1Counts, class2Counts, class3Counts]];
+        % Calculate dominance ratio, throw out interval if smaller than ratio  
+        allCounts = [class1Counts, class2Counts, class3Counts]; 
+        ratio = max(allCounts)/sum(allCounts); 
+        if ratio > dtc
+            intervals = [intervals; [val1, val2]];
+            classes = [classes, s.DominantClass(i-1)];
+            intervalCounts = [intervalCounts; [class1Counts, class2Counts, class3Counts]];
+        end 
         class1Counts = 0;
         class2Counts = 0;
         class3Counts = 0;

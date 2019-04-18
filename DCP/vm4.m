@@ -11,11 +11,11 @@ for j = 1:size(test,1)
     for i = 1:numAttributes
         if (guess{j}.(names{i}) ~= 0)
             % Only use if the interval is large enough 
-            if (training_set{i}.intervals(guess{j}.(names{i+4}),2) - training_set{i}.intervals(guess{j}.(names{i+4}),1) > intervalCap)
-            totalCount = sum(training_set{i}.intervalCounts(guess{j}.(names{i+4}),:)); 
-            oneCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),1); 
-            twoCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),2); 
-            threeCount = training_set{i}.intervalCounts(guess{j}.(names{i+4}),3); 
+            if (training_set{i}.intervals(guess{j}.(names{i+numAttributes}),2) - training_set{i}.intervals(guess{j}.(names{i+numAttributes}),1) > intervalCap)
+            totalCount = sum(training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),:)); 
+            oneCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),1); 
+            twoCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),2); 
+            threeCount = training_set{i}.intervalCounts(guess{j}.(names{i+numAttributes}),3); 
             % If above voting cap, set to voting cap 
             if oneCount/ (totalCount -oneCount) > votingCap
                 one = one + votingCap; 
@@ -32,9 +32,7 @@ for j = 1:size(test,1)
             else 
                 three = three + (threeCount/ (totalCount -threeCount)); 
             end 
-         
             end 
-
         end
     end
     [~, temp] =  max([one, two, three]);
@@ -43,6 +41,6 @@ end
 results.point = test;
 results.classification = classification;
 % Change here for different sizes 
-temp = test(:,5) - results.classification';
+temp = test(:,numAttributes+1) - results.classification';
 results.accuracy = size(find(temp == 0),1);
 end 
