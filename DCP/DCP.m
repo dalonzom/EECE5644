@@ -5,7 +5,7 @@
 % Notes - needs to be modified to work for all inputs,
 % Classes must start at 1
 
-
+clear;
 % CHANGE HERE
 numClasses = 2;
 allGuess = [];
@@ -18,9 +18,12 @@ count = 1;
 
 for dtc = 0:.1:1
     % Use 80% for training
-    load('iris.mat')
-   % iris(:,3) = iris(:,3) +1; 
+    tempCell = struct2cell(load('gauss4.mat'));
+    iris = tempCell{1};
     dim = size(iris);
+    if(min(iris(:,dim(2)))==0)
+        iris(:,dim(2)) = iris(:,dim(2)) + 1;
+    end
     train = randperm(dim(1));
     test = iris(train((dim(1)*.8)+1:dim(1)),:);
     iris = iris(train(1:dim(1)*.8),:);
