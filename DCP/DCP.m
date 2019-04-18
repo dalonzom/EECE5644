@@ -49,7 +49,7 @@ for dtc = 0:.1:1
         else
             train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
         end
-
+        
         numAttributes = dim(2) - 1;
         
         %% Create Dominance Classifier Structure
@@ -66,7 +66,7 @@ for dtc = 0:.1:1
             guess{i} =  guessClasses(point, numAttributes, training_set);
         end
         
-        %% Combine Dominances  
+        %% Combine Dominances
         % Voting Method 4
         results4 = vm4(validate,guess, numAttributes,training_set, intervalCap, votingCap);
         
@@ -117,7 +117,7 @@ for votingCap = 1 :1:freq/freq2
         else
             train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
         end
-
+        
         numAttributes = dim(2) - 1;
         
         %% Create Dominance Classifier Structure
@@ -172,7 +172,7 @@ for intervalCap =  0:.5:max(max(train) - min(train))
         else
             train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
         end
-
+        
         numAttributes = dim(2) - 1;
         
         %% Create Dominance Classifier Structure
@@ -206,3 +206,33 @@ intervalCap = intervalCaps(index);
 figure;
 bar(intervalCapAccuracy)
 
+train = fullTrain;
+dim = size(train);
+
+numAttributes = dim(2) - 1;
+
+%% Create Dominance Classifier Structure
+training_set = {};
+for i = 1:numAttributes
+    training_set{i} = training(train(:,i), train(:,dim(2)), dtc);
+end
+
+%% Classification
+% Guess Classes
+guess = {};
+for i = 1:size(test,1)
+    point = test(i,:);
+    guess{i} =  guessClasses(point, numAttributes, training_set);
+end
+
+% % Voting Method 1
+% results1 = vm1(test, guess, numAttributes);
+%
+% % Voting Method 2
+% results2 = vm2(test,guess,numAttributes, training_set);
+%
+% % Voting Method 3
+% results3 = vm3(test,guess,numAttributes, training_set);
+
+% Voting Method 4
+results4 = vm4(test, guess, numAttributes, training_set, intervalCap, votingCap);
