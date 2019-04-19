@@ -25,23 +25,21 @@ for(col=1:(fullDim(2)-1))
 end
 
 indices = randperm(fullDim(1));
-test = fullData(indices(round((fullDim(1)*.8))+1:fullDim(1)),:);
-fullTrain = fullData(indices(1:round(fullDim(1)*.8)),:);
+test = fullData(indices((fullDim(1)*.8)+1:fullDim(1)),:);
+fullTrain = fullData(indices(1:fullDim(1)*.8),:);
 numAttributes = fullDim(2) - 1;
+
 
 folds = 5;
 
-dtc = 0;
-intervalCap = 0;
-votingCap = fullDim(1);
+intervalCap = .05;
+votingCap = 10;
+dtc = 0.3;
 
 repetitions = 10;
-stepPercent = 1.25;
+stepS
 
 for repeat = 1:repetitions
-    
-    stepPercent = stepPercent * 0.8
-    
     repeat
     dtcs = [];
     accuracyResults = [];
@@ -104,7 +102,7 @@ for repeat = 1:repetitions
     ylabel('Number of Instances Classified Correctly')
     [~, dtcIdx] = max(accuracyResults);
     dtc = dtcs(dtcIdx);
-    dtc = oldDtc+(dtc-oldDtc)*(stepPercent)
+    dtc = oldDtc+(dtc-oldDtc)*(1/repetitions);
     
     [m, freq] = mode(training_set{1}.labels);
     temp = mode(training_set{1}.labels(training_set{1}.labels ~= m));
@@ -164,7 +162,7 @@ for repeat = 1:repetitions
     end
     [~, index] = max(votingCapAccuracy);
     votingCap = votingCaps(index);
-    votingCap = oldVotingCap+(votingCap-oldVotingCap)*(stepPercent)
+    votingCap = oldVotingCap+(votingCap-oldVotingCap)*(1/repetitions);
     %figure;
     %bar(votingCapAccuracy);
     
@@ -224,7 +222,7 @@ for repeat = 1:repetitions
     
     [~, index] = max(intervalCapAccuracy);
     intervalCap = intervalCaps(index);
-    intervalCap = oldIntervalCap+(intervalCap-oldIntervalCap)*(stepPercent)
+    intervalCap = oldIntervalCap+(intervalCap-oldIntervalCap)*(1/repetitions);
     %figure;
     %bar(intervalCapAccuracy)
     
