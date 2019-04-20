@@ -1,18 +1,30 @@
 %% Implementation of the Dominance Classifier and Predictor Algorithm
 %% taken from "Toward Efficient Automation of Interpretable Machine Learning"
 %% developed by Boris Kovalerchuk, Nathan Neuhaus
-%% EECE 5644 Final Project, Marissa D'Alonzo, Ryan Huebelback
+%% EECE 5644 Final Project, Marissa D'Alonzo, Ryan Hubelbank
 % Notes - needs to be modified to work for all inputs,
 % Classes must start at 1
 
 clear;
 % CHANGE HERE
 allGuess = [];
+
 allTest = {};
 allResults = [];
 count = 1;
 tempCell = struct2cell(load('iris.mat'));
 fullData = tempCell{1};
+fullDim = size(fullData);
+avg = mean(fullData);
+labels = fullData(:,fullDim(2));
+counter = 0;
+for(i=1:(fullDim(2)-1))
+    for(j=(i+1):(fullDim(2)-1))
+        fullData(:,fullDim(2)+counter) = (fullData(:,i)-avg(i)).*(fullData(:,j)-avg(j));
+        counter = counter + 1;
+    end
+end
+fullData(:,fullDim(2)+counter) = labels;
 fullDim = size(fullData);
 if(min(fullData(:,fullDim(2)))==0)
     fullData(:,fullDim(2)) = fullData(:,fullDim(2)) + 1;
@@ -30,17 +42,20 @@ fullTrain = fullData(indices(1:round(fullDim(1)*.8)),:);
 numAttributes = fullDim(2) - 1;
 
 folds = 5;
+precision = 0.01;
 
 dtc = 0;
 intervalCap = 0;
 votingCap = fullDim(1);
 
 repetitions = 10;
-stepPercent = 1.25;
+decayRate = 0.9;
+stepPercent = 1/decayRate;
+windowTail = 0.15;
 
 for repeat = 1:repetitions
     
-    stepPercent = stepPercent * 0.8
+    stepPercent = stepPercent * decayRate
     
     repeat
     dtcs = [];
@@ -48,7 +63,7 @@ for repeat = 1:repetitions
     
     oldDtc = dtc;
     
-    for dtc = 0:0.01:1
+    for dtc = max(oldDtc-windowTail,0):precision:min(oldDtc+windowTail,1)
         setAccuracy = zeros(folds,1);
         
         dim = size(fullTrain);
@@ -114,7 +129,7 @@ for repeat = 1:repetitions
     
     oldVotingCap = votingCap;
     
-    for votingCap = 1:(0.01*freq/freq2):(freq/freq2)
+    for votingCap = max(min(oldVotingCap,freq/freq2)-(freq/freq2)*windowTail,1):(precision*freq/freq2):min(oldVotingCap+(freq/freq2)*windowTail,(freq/freq2))
         setAccuracy = zeros(folds,1);
         
         dim = size(fullTrain);
@@ -173,7 +188,7 @@ for repeat = 1:repetitions
     
     oldIntervalCap = intervalCap;
     
-    for intervalCap =  0:.01:1
+    for intervalCap = max(oldIntervalCap-windowTail,0):precision:min(oldIntervalCap+windowTail,1)
         setAccuracy = zeros(folds,1);
         
         dim = size(fullTrain);
@@ -229,7 +244,7 @@ for repeat = 1:repetitions
     %bar(intervalCapAccuracy)
     
 end
-
+%%
 train = fullTrain;
 dim = size(train);
 
