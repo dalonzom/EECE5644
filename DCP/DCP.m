@@ -12,33 +12,29 @@ allGuess = [];
 allTest = {};
 allResults = [];
 count = 1;
-tempCell = struct2cell(load('iris.mat'));
+tempCell = struct2cell(load('gauss4.mat'));
 fullData = tempCell{1};
-fullDim = size(fullData);
-avg = mean(fullData);
-labels = fullData(:,fullDim(2));
-counter = 0;
-for(i=1:(fullDim(2)-1))
-    for(j=(i+1):(fullDim(2)-1))
-        fullData(:,fullDim(2)+counter) = (fullData(:,i)-avg(i)).*(fullData(:,j)-avg(j));
-        counter = counter + 1;
-    end
-end
-fullData(:,fullDim(2)+counter) = labels;
+
 fullDim = size(fullData);
 if(min(fullData(:,fullDim(2)))==0)
     fullData(:,fullDim(2)) = fullData(:,fullDim(2)) + 1;
 end
 
-for(col=1:(fullDim(2)-1))
-    lowest = min(fullData(:,col));
-    highest = max(fullData(:,col));
-    fullData(:,col)= (fullData(:,col)-lowest)/(highest-lowest);
-end
-
 indices = randperm(fullDim(1));
 test = fullData(indices(round((fullDim(1)*.8))+1:fullDim(1)),:);
 fullTrain = fullData(indices(1:round(fullDim(1)*.8)),:);
+
+[fullTrain, test] = vm6Expand(fullTrain, test);
+
+fullDim = size(fullData);
+
+for(col=1:(fullDim(2)-1))
+    lowest = min(fullTrain(:,col));
+    highest = max(fullTrain(:,col));
+    fullTrain(:,col)= (fullTrain(:,col)-lowest)/(highest-lowest);
+    test(:,col)= (test(:,col)-lowest)/(highest-lowest);
+end
+
 numAttributes = fullDim(2) - 1;
 
 folds = 5;
@@ -49,13 +45,16 @@ intervalCap = 0;
 votingCap = fullDim(1);
 
 repetitions = 10;
-decayRate = 0.9;
+decayRate = 0.75;
 stepPercent = 1/decayRate;
-windowTail = 0.15;
+windowTail = 0.25;
+
+windowTail = windowTail / decayRate;
 
 for repeat = 1:repetitions
     
     stepPercent = stepPercent * decayRate
+    windowTail = max(precision, windowTail * decayRate);
     
     repeat
     dtcs = [];
