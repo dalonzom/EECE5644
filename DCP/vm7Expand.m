@@ -3,7 +3,7 @@ function [selectedTraining, selectedTesting] = vm7Expand(trainingSet, testingSet
 oldDim = size(trainingSet);
 %avgTrain = mean(trainingSet);
 %avgTest = mean(testingSet);
-avg = mean([trainingSet; testingSet]);
+avg = mean([trainingSet; testingSet])
 labels = trainingSet(:,oldDim(2));
 counter = 0;
 fullTraining = trainingSet;
@@ -50,13 +50,21 @@ end
 scores = scores(:,[1:max(trainingSet(:,oldDim(2)))]);
 
 for(i=1:size(scores,2))
-    count = size(find(trainingSet(:,oldDim(2))==i));
-    scores(:,i) = count(1).*scores(:,i)./sum(scores(:,i));
+    %count = size(find(trainingSet(:,oldDim(2))==i));
+    %scores(:,i) = count(1).*scores(:,i)./sum(scores(:,i));
+    scores(:,i) = scores(:,i)./sum(scores(:,i));
 end
 
-tempScores = sum(scores,2)
+tempScores = min(scores,[],2)
 selections = [];
-for(i=1:10)
+counter = 1;
+for(i=1:(oldDim(2)-1))
+    selectedTraining(:,i) = fullTraining(:, i);
+    selectedTesting(:,i) = fullTesting(:, i);
+    tempScores(i) = -Inf;
+    counter = counter + 1;
+end
+for(i=counter:10)
     if(i>(fullDim(2)-1))
         break;
     end
@@ -65,15 +73,16 @@ for(i=1:10)
     selectedTraining(:,i) = fullTraining(:, index);
     selectedTesting(:,i) = fullTesting(:,index);
     factor = relations(index,index);
-    if(index < oldDim(2))
-        for(j = mappings{index})
-            tempScores(j) = tempScores(j) - 0.5*tempScores(index);
-        end
-    end
+%     if(index < oldDim(2))
+%         for(j = mappings{index})
+%             tempScores(j) = tempScores(j)/2;
+%         end
+%     end
     tempScores(index) = -Inf;
+    counter = counter + 1;
 end
 tempScores
-selectedTesting(:,fullDim(2)) = testingSet(:,oldDim(2));
-selectedTraining(:,fullDim(2)) = trainingSet(:,oldDim(2));
+selectedTesting(:,counter) = testingSet(:,oldDim(2));
+selectedTraining(:,counter) = trainingSet(:,oldDim(2));
 
 end

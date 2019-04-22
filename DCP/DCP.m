@@ -16,6 +16,7 @@ tempCell = struct2cell(load('iris.mat'));
 fullData = tempCell{1};
 
 fullDim = size(fullData);
+initialDim = fullDim;
 if(min(fullData(:,fullDim(2)))==0)
     fullData(:,fullDim(2)) = fullData(:,fullDim(2)) + 1;
 end
@@ -30,7 +31,11 @@ fullDim = size(fullData);
 
 for(col=1:(fullDim(2)-1))
     lowest = min(fullTrain(:,col));
+    lowest2 = min(test(:,col));
+    lowest = min(lowest, lowest2);
     highest = max(fullTrain(:,col));
+    highest2 = max(test(:,col));
+    highest = max(highest, highest2);
     fullTrain(:,col)= (fullTrain(:,col)-lowest)/(highest-lowest);
     test(:,col)= (test(:,col)-lowest)/(highest-lowest);
 end
@@ -47,14 +52,14 @@ votingCap = fullDim(1);
 repetitions = 10;
 decayRate = 0.9;
 stepPercent = 1/decayRate;
-windowTail = 0.15;
+windowTail = 0.3;
 
-%windowTail = windowTail / decayRate;
+windowTail = windowTail / decayRate;
 
 for repeat = 1:repetitions
     
     stepPercent = stepPercent * decayRate
-    %windowTail = max(precision, windowTail * decayRate);
+    windowTail = max(precision, windowTail * decayRate);
     
     repeat
     dtcs = [];
@@ -248,6 +253,7 @@ train = fullTrain;
 dim = size(train);
 
 numAttributes = dim(2) - 1;
+originalNumAttributes = initialDim(2) - 1;
 
 %% Create Dominance Classifier Structure
 training_set = {};
@@ -263,18 +269,32 @@ for i = 1:size(test,1)
     guess{i} =  guessClasses(point, numAttributes, training_set);
 end
 
+originalTest = test(:,[1:(initialDim(2)-1) dim(2)]);
+originalTrainingSet = {};
+for(i=1:(initialDim(2)-1))
+    originalTrainingSet{i} = training_set{i};
+end
+
+originalGuess = {};
+for i = 1:size(originalTest,1)
+    point = originalTest(i,:);
+    originalGuess{i} =  guessClasses(point, originalNumAttributes, originalTrainingSet);
+end
+
 % % Voting Method 1
-results1 = vm1(test, guess, numAttributes);
+results1 = vm1(originalTest, originalGuess, originalNumAttributes);
 %
 % % Voting Method 2
-results2 = vm2(test,guess,numAttributes, training_set);
+results2 = vm2(originalTest,originalGuess,originalNumAttributes, originalTrainingSet);
 %
 % % Voting Method 3
-results3 = vm3(test,guess,numAttributes, training_set);
+results3 = vm3(originalTest,originalGuess,originalNumAttributes, originalTrainingSet);
 
 % Voting Method 4
-results4 = vm4(test, guess, numAttributes, training_set, intervalCap, votingCap);
-results4.accuracy/size(test,1)
+results4 = vm4(originalTest, originalGuess, originalNumAttributes, originalTrainingSet, intervalCap, votingCap);
+
+results7 = vm4(test, guess, numAttributes, training_set, intervalCap, votingCap);
+results7.accuracy/size(test,1)
 
 dtc
 votingCap
