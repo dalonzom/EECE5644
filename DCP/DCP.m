@@ -12,7 +12,7 @@ allGuess = [];
 allTest = {};
 allResults = [];
 count = 1;
-tempCell = struct2cell(load('iris.mat'));
+tempCell = struct2cell(load('gauss4.mat'));
 fullData = tempCell{1};
 
 fullDim = size(fullData);
@@ -40,262 +40,114 @@ for(col=1:(fullDim(2)-1))
     test(:,col)= (test(:,col)-lowest)/(highest-lowest);
 end
 
-numAttributes = fullDim(2) - 1;
-
-folds = 5;
-precision = 0.01;
-
-dtc = 0;
-intervalCap = 0;
-votingCap = fullDim(1);
-
-repetitions = 10;
-decayRate = 0.9;
-stepPercent = 1/decayRate;
-windowTail = 0.3;
-
-windowTail = windowTail / decayRate;
-
-for repeat = 1:repetitions
-    
-    stepPercent = stepPercent * decayRate
-    windowTail = max(precision, windowTail * decayRate);
-    
-    repeat
-    dtcs = [];
-    accuracyResults = [];
-    
-    oldDtc = dtc;
-    
-    for dtc = max(oldDtc-windowTail,0):precision:min(oldDtc+windowTail,1)
-        setAccuracy = zeros(folds,1);
-        
-        dim = size(fullTrain);
-        
-        indices = randperm(dim(1));
-        fullTrain = fullTrain(indices, :);
-        
-        for set = 1:folds
-            
-            starting = round(((set-1)/folds*dim(1))+1);
-            ending = round((set)/folds*dim(1));
-            validate = fullTrain(starting:ending, :);
-            if(set==1)
-                train = fullTrain((ending+1):end, :);
-            elseif (set==folds)
-                train = fullTrain(1:(starting-1), :);
-            else
-                train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
-            end
-            
-            numAttributes = dim(2) - 1;
-            
-            %% Create Dominance Classifier Structure
-            training_set = {};
-            for i = 1:numAttributes
-                training_set{i} = training(train(:,i), train(:,dim(2)), dtc);
-            end
-            
-            %% Classification
-            % Guess Classes
-            guess = {};
-            for i = 1:size(validate,1)
-                point = validate(i,:);
-                guess{i} =  guessClasses(point, numAttributes, training_set);
-            end
-            
-            %% Combine Dominances
-            % Voting Method 4
-            results4 = vm4(validate,guess, numAttributes,training_set, intervalCap, votingCap);
-            
-            setAccuracy(set) = results4.accuracy;
-        end
-        
-        %Store the results of each iteration
-        accuracyResults = [accuracyResults, mean(setAccuracy)];
-        dtcs = [dtcs dtc];
-    end
-    %Plot accuracy
-    %figure;
-    %bar(accuracyResults)
-    %xticklabels({'0','.1','.2', '.3', '.4','.5','.6','.7','.8', '.9', '1'})
-    xlabel('Runs')
-    ylabel('Number of Instances Classified Correctly')
-    [~, dtcIdx] = max(accuracyResults);
-    dtc = dtcs(dtcIdx);
-    dtc = oldDtc+(dtc-oldDtc)*(stepPercent)
-    
-    [m, freq] = mode(training_set{1}.labels);
-    temp = mode(training_set{1}.labels(training_set{1}.labels ~= m));
-    [m2, freq2] = mode(temp);
-    votingCapAccuracy = [];
-    votingCaps = [];
-    
-    oldVotingCap = votingCap;
-    
-    for votingCap = max(min(oldVotingCap,freq/freq2)-(freq/freq2)*windowTail,1):(precision*freq/freq2):min(oldVotingCap+(freq/freq2)*windowTail,(freq/freq2))
-        setAccuracy = zeros(folds,1);
-        
-        dim = size(fullTrain);
-        
-        indices = randperm(dim(1));
-        fullTrain = fullTrain(indices, :);
-        
-        for set = 1:folds
-            
-            starting = round(((set-1)/folds*dim(1))+1);
-            ending = round((set)/folds*dim(1));
-            validate = fullTrain(starting:ending, :);
-            if(set==1)
-                train = fullTrain((ending+1):end, :);
-            elseif (set==folds)
-                train = fullTrain(1:(starting-1), :);
-            else
-                train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
-            end
-            
-            numAttributes = dim(2) - 1;
-            
-            %% Create Dominance Classifier Structure
-            training_set = {};
-            for i = 1:numAttributes
-                training_set{i} = training(train(:,i), train(:,dim(2)), dtc);
-            end
-            
-            %% Classification
-            % Guess Classes
-            guess = {};
-            for i = 1:size(validate,1)
-                point = validate(i,:);
-                guess{i} =  guessClasses(point, numAttributes, training_set);
-            end
-            
-            %% Combine Dominances
-            % Voting Method 4
-            results4 = vm4(validate,guess, numAttributes,training_set, intervalCap, votingCap);
-            
-            setAccuracy(set) = results4.accuracy;
-        end
-        
-        votingCapAccuracy = [votingCapAccuracy, mean(setAccuracy)];
-        votingCaps = [votingCaps, votingCap];
-        
-    end
-    [~, index] = max(votingCapAccuracy);
-    votingCap = votingCaps(index);
-    votingCap = oldVotingCap+(votingCap-oldVotingCap)*(stepPercent)
-    %figure;
-    %bar(votingCapAccuracy);
-    
-    intervalCaps = [];
-    intervalCapAccuracy = [];
-    
-    oldIntervalCap = intervalCap;
-    
-    for intervalCap = max(oldIntervalCap-windowTail,0):precision:min(oldIntervalCap+windowTail,1)
-        setAccuracy = zeros(folds,1);
-        
-        dim = size(fullTrain);
-        
-        indices = randperm(dim(1));
-        fullTrain = fullTrain(indices, :);
-        
-        for set = 1:folds
-            
-            starting = round(((set-1)/folds*dim(1))+1);
-            ending = round((set)/folds*dim(1));
-            validate = fullTrain(starting:ending, :);
-            if(set==1)
-                train = fullTrain((ending+1):end, :);
-            elseif (set==folds)
-                train = fullTrain(1:(starting-1), :);
-            else
-                train = [fullTrain(1:(starting-1), :); fullTrain((ending+1):end, :)];
-            end
-            
-            numAttributes = dim(2) - 1;
-            
-            %% Create Dominance Classifier Structure
-            training_set = {};
-            for i = 1:numAttributes
-                training_set{i} = training(train(:,i), train(:,dim(2)), dtc);
-            end
-            
-            %% Classification
-            % Guess Classes
-            guess = {};
-            for i = 1:size(validate,1)
-                point = validate(i,:);
-                guess{i} =  guessClasses(point, numAttributes, training_set);
-            end
-            
-            %% Combine Dominances
-            % Voting Method 4
-            results4 = vm4(validate,guess, numAttributes,training_set, intervalCap, votingCap);
-            
-            setAccuracy(set) = results4.accuracy;
-        end
-        
-        intervalCapAccuracy = [intervalCapAccuracy, mean(setAccuracy)];
-        intervalCaps = [intervalCaps, intervalCap];
-        
-    end
-    
-    [~, index] = max(intervalCapAccuracy);
-    intervalCap = intervalCaps(index);
-    intervalCap = oldIntervalCap+(intervalCap-oldIntervalCap)*(stepPercent)
-    %figure;
-    %bar(intervalCapAccuracy)
-    
-end
-%%
 train = fullTrain;
 dim = size(train);
+
+originalTrain = fullTrain(:,[1:(initialDim(2) - 1) dim(2)]);
+
+dtc1 = trainVm1(originalTrain);
+dtc2 = trainVm2(originalTrain);
+dtc3 = trainVm3(originalTrain);
+[dtc4, intervalCap4, votingCap4] = trainVm4(originalTrain);
+[dtc5, intervalCap5, votingCap5] = trainVm4(fullTrain);
+[dtc6, intervalCap6, votingCap6] = trainVm4(fullTrain);
+
+%%
+
+originalTest = test(:,[1:(initialDim(2)-1) dim(2)]);
 
 numAttributes = dim(2) - 1;
 originalNumAttributes = initialDim(2) - 1;
 
 %% Create Dominance Classifier Structure
-training_set = {};
+training_set1 = {};
+for i = 1:originalNumAttributes
+    training_set1{i} = training(originalTrain(:,i), originalTrain(:,initialDim(2)), dtc1);
+end
+
+training_set2 = {};
+for i = 1:originalNumAttributes
+    training_set2{i} = training(originalTrain(:,i), originalTrain(:,initialDim(2)), dtc2);
+end
+
+training_set3 = {};
+for i = 1:originalNumAttributes
+    training_set3{i} = training(originalTrain(:,i), originalTrain(:,initialDim(2)), dtc3);
+end
+
+training_set4 = {};
+for i = 1:originalNumAttributes
+    training_set4{i} = training(originalTrain(:,i), originalTrain(:,initialDim(2)), dtc4);
+end
+
+training_set5 = {};
+for i = 1:originalNumAttributes
+    training_set5{i} = training(originalTrain(:,i), originalTrain(:,initialDim(2)), dtc5);
+end
+
+training_set6 = {};
 for i = 1:numAttributes
-    training_set{i} = training(train(:,i), train(:,dim(2)), dtc);
+    training_set6{i} = training(fullTrain(:,i), fullTrain(:,dim(2)), dtc6);
 end
 
 %% Classification
 % Guess Classes
-guess = {};
-for i = 1:size(test,1)
-    point = test(i,:);
-    guess{i} =  guessClasses(point, numAttributes, training_set);
-end
-
-originalTest = test(:,[1:(initialDim(2)-1) dim(2)]);
-originalTrainingSet = {};
-for(i=1:(initialDim(2)-1))
-    originalTrainingSet{i} = training_set{i};
-end
-
-originalGuess = {};
+guess1 = {};
 for i = 1:size(originalTest,1)
     point = originalTest(i,:);
-    originalGuess{i} =  guessClasses(point, originalNumAttributes, originalTrainingSet);
+    guess1{i} =  guessClasses(point, originalNumAttributes, training_set1);
 end
 
+guess2 = {};
+for i = 1:size(originalTest,1)
+    point = originalTest(i,:);
+    guess2{i} =  guessClasses(point, originalNumAttributes, training_set2);
+end
+
+guess3 = {};
+for i = 1:size(originalTest,1)
+    point = originalTest(i,:);
+    guess3{i} =  guessClasses(point, originalNumAttributes, training_set3);
+end
+
+guess4 = {};
+for i = 1:size(originalTest,1)
+    point = originalTest(i,:);
+    guess4{i} =  guessClasses(point, originalNumAttributes, training_set4);
+end
+
+guess5 = {};
+for i = 1:size(originalTest,1)
+    point = originalTest(i,:);
+    guess5{i} =  guessClasses(point, originalNumAttributes, training_set5);
+end
+
+guess6 = {};
+for i = 1:size(test,1)
+    point = test(i,:);
+    guess6{i} =  guessClasses(point, numAttributes, training_set6);
+end
+
+%%
+acc = [];
 % % Voting Method 1
-results1 = vm1(originalTest, originalGuess, originalNumAttributes);
+results1 = vm1(originalTest, guess1, originalNumAttributes);
+acc = [acc results1.accuracy/size(test,1)];
 %
 % % Voting Method 2
-results2 = vm2(originalTest,originalGuess,originalNumAttributes, originalTrainingSet);
+results2 = vm2(originalTest,guess2,originalNumAttributes, training_set2);
+acc = [acc results2.accuracy/size(test,1)];
 %
 % % Voting Method 3
-results3 = vm3(originalTest,originalGuess,originalNumAttributes, originalTrainingSet);
+results3 = vm3(originalTest,guess3,originalNumAttributes, training_set3);
+acc = [acc results3.accuracy/size(test,1)];
 
 % Voting Method 4
-results4 = vm4(originalTest, originalGuess, originalNumAttributes, originalTrainingSet, intervalCap, votingCap);
+results4 = vm4(originalTest, guess4, originalNumAttributes, training_set4, intervalCap4, votingCap4);
+acc = [acc results4.accuracy/size(test,1)];
 
-results7 = vm4(test, guess, numAttributes, training_set, intervalCap, votingCap);
-results7.accuracy/size(test,1)
+results5 = vm5(originalTest, guess5, originalNumAttributes, training_set5, intervalCap5, votingCap5);
+acc = [acc results5.accuracy/size(test,1)];
 
-dtc
-votingCap
-intervalCap
+results6 = vm5(test, guess6, numAttributes, training_set6, intervalCap6, votingCap6);
+acc = [acc results6.accuracy/size(test,1)];
