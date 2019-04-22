@@ -25,7 +25,7 @@ indices = randperm(fullDim(1));
 test = fullData(indices(round((fullDim(1)*.8))+1:fullDim(1)),:);
 fullTrain = fullData(indices(1:round(fullDim(1)*.8)),:);
 
-[fullTrain, test] = vm7Expand(fullTrain, test);
+[fullTrain, test] = vm6Expand(fullTrain, test);
 
 fullDim = size(fullData);
 
@@ -49,7 +49,9 @@ dtc1 = trainVm1(originalTrain);
 dtc2 = trainVm2(originalTrain);
 dtc3 = trainVm3(originalTrain);
 [dtc4, intervalCap4, votingCap4] = trainVm4(originalTrain);
-[dtc5, intervalCap5, votingCap5] = trainVm4(fullTrain);
+dtc5 = dtc4;
+intervalCap5 = intervalCap4;
+votingCap5 = votingCap4;
 [dtc6, intervalCap6, votingCap6] = trainVm4(fullTrain);
 
 %%
