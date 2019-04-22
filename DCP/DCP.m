@@ -12,7 +12,7 @@ allGuess = [];
 allTest = {};
 allResults = [];
 count = 1;
-tempCell = struct2cell(load('gauss4.mat'));
+tempCell = struct2cell(load('iris.mat'));
 fullData = tempCell{1};
 
 fullDim = size(fullData);
@@ -24,7 +24,7 @@ indices = randperm(fullDim(1));
 test = fullData(indices(round((fullDim(1)*.8))+1:fullDim(1)),:);
 fullTrain = fullData(indices(1:round(fullDim(1)*.8)),:);
 
-[fullTrain, test] = vm6Expand(fullTrain, test);
+[fullTrain, test] = vm7Expand(fullTrain, test);
 
 fullDim = size(fullData);
 
@@ -45,16 +45,16 @@ intervalCap = 0;
 votingCap = fullDim(1);
 
 repetitions = 10;
-decayRate = 0.75;
+decayRate = 0.9;
 stepPercent = 1/decayRate;
-windowTail = 0.25;
+windowTail = 0.15;
 
-windowTail = windowTail / decayRate;
+%windowTail = windowTail / decayRate;
 
 for repeat = 1:repetitions
     
     stepPercent = stepPercent * decayRate
-    windowTail = max(precision, windowTail * decayRate);
+    %windowTail = max(precision, windowTail * decayRate);
     
     repeat
     dtcs = [];
